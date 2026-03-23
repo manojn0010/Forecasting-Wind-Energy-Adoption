@@ -1,0 +1,975 @@
+
+> # File: 07_model_validation.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Compare model performance using train-test validation (log  .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(forecast)
+
+> library(here)
+
+> # Load data
+> model_df <- read_csv(
++   here("data", "processed", "model_df.csv")
++ )
+indexing model_df.csv [=======================================================] 103.26MB/s, eta:  0s                                                                                                    
+> # TRAIN / TEST SPLIT (80-20)
+> n <- nrow(model_df)
+
+> train_size <- floor(0.8 * n)
+
+> train_df <- model_df[1:train_size, ]
+
+> test_df  <- model_df[(train_size + 1):n, ]
+
+> # TIME SERIES
+> ts_train <- ts(
++   train_df$log_wind,
++   start = min(train_df$year),
++   frequency = 1
++ )
+
+> ts_test <- ts(
++   test_df$log_wind,
++   start = min(test_df$year),
++   frequency = 1
++ )
+
+> # XREG MATRICES
+> 
+> # FULL (with gas)
+> xreg_train_full <- train_df %>%
++   select(log_lcoe, log_electricity, log_gas) %>%
++   as.matrix()
+
+> xreg_test_full <- test_df %>%
++   select(log_lcoe, log_electricity, log_gas) %>%
++   as.matrix()
+
+> # REDUCED (no gas)
+> xreg_train_reduced <- train_df %>%
++   select(log_lcoe, log_electricity) %>%
++   as.matrix()
+
+> xreg_test_reduced <- test_df %>%
++   select(log_lcoe, log_electricity) %>%
++   as.matrix()
+
+> # MODEL FITTING
+> 
+> # TRAIN
+> 
+> # ARIMA
+> fit_arima <- auto.arima(ts_train)
+
+> # ARIMAX (full)
+> fit_arimax_full <- auto.arima(
++   ts_train,
++   xreg = xreg_train_full
++ )
+
+> # ARIMAX (reduced)
+> fit_arimax_reduced <- auto.arima(
++   ts_train,
++   xreg = xreg_train_reduced
++ )
+
+> # TEST
+> 
+> h <- length(ts_test)
+
+> fc_arima <- forecast(fit_arima, h = h)
+
+> fc_arimax_full <- forecast(
++   fit_arimax_full,
++   xreg = xreg_test_full,
++   h = h
++ )
+
+> fc_arimax_reduced <- forecast(
++   fit_arimax_reduced,
++   xreg = xreg_test_reduced,
++   h = h
++ )
+
+> # ACCURACY (LOG SCALE ONLY)
+> acc_arima <- accuracy(fc_arima, ts_test)
+
+> acc_arimax_full <- accuracy(fc_arimax_full, ts_test)
+
+> acc_arimax_reduced <- accuracy(fc_arimax_reduced, ts_test)
+
+> # OUTPUT
+> acc_arima
+                       ME       RMSE        MAE        MPE      MAPE      MASE       ACF1 Theil's U
+Training set -0.009669941 0.03863073 0.02550867 -0.2177832 0.7864614 0.1379470 -0.3262097        NA
+Test set     -0.052538587 0.06341109 0.05324211 -0.9683242 0.9819147 0.2879253  0.5157076  0.972098
+
+> acc_arimax_full
+                        ME      RMSE       MAE         MPE      MAPE      MASE      ACF1 Theil's U
+Training set -0.0001732274 0.1876376 0.1548371  -0.7985212  5.398241 0.8373358 0.3334148        NA
+Test set     -1.2613471735 1.5204716 1.2613472 -23.2683516 23.268352 6.8211751 0.4227075  23.19234
+
+> acc_arimax_reduced
+                      ME      RMSE       MAE       MPE     MAPE      MASE        ACF1 Theil's U
+Training set  0.07976142 0.1557697 0.1260845  2.313142 4.105170 0.6818460 -0.01958702        NA
+Test set     -0.16880600 0.2025681 0.1688060 -3.121256 3.121256 0.9128774  0.25025539  3.115563
+
+> # Save Accuracy as Table
+> validation_df <- data.frame(
++   model = c("ARIMA", "ARIMAX_FULL", "ARIMAX_REDUCED"),
++   RMSE = c(acc_arima[2,"RMSE"],
++ .... [TRUNCATED] 
+
+> write_csv(
++   validation_df,
++   here("outputs", "validation", "model_accuracy.csv")
++ )
+wrote 2.15GB in  0s, 2.15GB/s                                                                                                  
+> # File: 07_model_validation.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Compare model performance using train-test validation (log  .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(forecast)
+
+> library(here)
+
+> # Load data
+> model_df <- read_csv(
++   here("data", "processed", "model_df.csv")
++ )
+indexing model_df.csv [=======================================================] 103.26MB/s, eta:  0s                                                                                                    
+> # TRAIN / TEST SPLIT (80-20)
+> n <- nrow(model_df)
+
+> train_size <- floor(0.8 * n)
+
+> train_df <- model_df[1:train_size, ]
+
+> test_df  <- model_df[(train_size + 1):n, ]
+
+> # TIME SERIES
+> ts_train <- ts(
++   train_df$log_wind,
++   start = min(train_df$year),
++   frequency = 1
++ )
+
+> ts_test <- ts(
++   test_df$log_wind,
++   start = min(test_df$year),
++   frequency = 1
++ )
+
+> # XREG MATRICES
+> 
+> # FULL (with gas)
+> xreg_train_full <- train_df %>%
++   select(log_lcoe, log_electricity, log_gas) %>%
++   as.matrix()
+
+> xreg_test_full <- test_df %>%
++   select(log_lcoe, log_electricity, log_gas) %>%
++   as.matrix()
+
+> # REDUCED (no gas)
+> xreg_train_reduced <- train_df %>%
++   select(log_lcoe, log_electricity) %>%
++   as.matrix()
+
+> xreg_test_reduced <- test_df %>%
++   select(log_lcoe, log_electricity) %>%
++   as.matrix()
+
+> # MODEL FITTING
+> 
+> # TRAIN
+> 
+> # ARIMA
+> fit_arima <- auto.arima(ts_train)
+
+> # ARIMAX (full)
+> fit_arimax_full <- auto.arima(
++   ts_train,
++   xreg = xreg_train_full
++ )
+
+> # ARIMAX (reduced)
+> fit_arimax_reduced <- auto.arima(
++   ts_train,
++   xreg = xreg_train_reduced
++ )
+
+> # TEST
+> 
+> h <- length(ts_test)
+
+> fc_arima <- forecast(fit_arima, h = h)
+
+> fc_arimax_full <- forecast(
++   fit_arimax_full,
++   xreg = xreg_test_full,
++   h = h
++ )
+
+> fc_arimax_reduced <- forecast(
++   fit_arimax_reduced,
++   xreg = xreg_test_reduced,
++   h = h
++ )
+
+> # ACCURACY (LOG SCALE ONLY)
+> acc_arima <- accuracy(fc_arima, ts_test)
+
+> acc_arimax_full <- accuracy(fc_arimax_full, ts_test)
+
+> acc_arimax_reduced <- accuracy(fc_arimax_reduced, ts_test)
+
+> # OUTPUT
+> acc_arima
+                       ME       RMSE        MAE        MPE      MAPE      MASE       ACF1 Theil's U
+Training set -0.009669941 0.03863073 0.02550867 -0.2177832 0.7864614 0.1379470 -0.3262097        NA
+Test set     -0.052538587 0.06341109 0.05324211 -0.9683242 0.9819147 0.2879253  0.5157076  0.972098
+
+> acc_arimax_full
+                        ME      RMSE       MAE         MPE      MAPE      MASE      ACF1 Theil's U
+Training set -0.0001732274 0.1876376 0.1548371  -0.7985212  5.398241 0.8373358 0.3334148        NA
+Test set     -1.2613471735 1.5204716 1.2613472 -23.2683516 23.268352 6.8211751 0.4227075  23.19234
+
+> acc_arimax_reduced
+                      ME      RMSE       MAE       MPE     MAPE      MASE        ACF1 Theil's U
+Training set  0.07976142 0.1557697 0.1260845  2.313142 4.105170 0.6818460 -0.01958702        NA
+Test set     -0.16880600 0.2025681 0.1688060 -3.121256 3.121256 0.9128774  0.25025539  3.115563
+
+> # Save Accuracy as Table
+> validation_df <- data.frame(
++   model = c("ARIMA", "ARIMAX_FULL", "ARIMAX_REDUCED"),
++   RMSE = c(acc_arima[2,"RMSE"],
++ .... [TRUNCATED] 
+
+> write_csv(
++   validation_df,
++   here("outputs", "validation", "model_accuracy.csv")
++ )
+wrote 2.15GB in  0s, 2.15GB/s                                                                                                  indexing Wind Capacity (MW).txt [==============================================] 7.65MB/s, eta:  0s                                                                                                   indexing Energy Generated TWh.txt [===========================================] 19.62MB/s, eta:  0s                                                                                                   indexing Natural gas (Europe).txt [===========================================] 35.10MB/s, eta:  0s                                                                                                   indexing Onshore LCOE.txt [===================================================] 24.45MB/s, eta:  0s                                                                                                   wrote 439.00B in  0s, 11.80MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 indexing master_dataset.csv [=================================================] 35.67MB/s, eta:  0s                                                                                                         year         wind_gw       electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+ Min.   :1997   Min.   :  4.81   Min.   :3389    Min.   : 2.130          Min.   : 33.0   
+ 1st Qu.:2003   1st Qu.: 29.71   1st Qu.:3828    1st Qu.: 3.947          1st Qu.: 68.5   
+ Median :2010   Median : 81.41   Median :3971    Median : 6.575          Median :107.5   
+ Mean   :2010   Mean   : 98.01   Mean   :3891    Mean   : 8.205          Mean   :101.9   
+ 3rd Qu.:2016   3rd Qu.:157.95   3rd Qu.:4037    3rd Qu.: 9.715          3rd Qu.:122.5   
+ Max.   :2022   Max.   :251.63   Max.   :4087    Max.   :40.340          Max.   :172.0   
+                           wind_gw electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+wind_gw                  1.0000000       0.5865130               0.5317639       -0.9699302
+electricity_twh          0.5865130       1.0000000               0.3484335       -0.7178178
+gas_price_usd_per_mmbtu  0.5317639       0.3484335               1.0000000       -0.4972742
+lcoe_usd_per_mwh        -0.9699302      -0.7178178              -0.4972742        1.0000000
+[1] 0
+indexing master_dataset.csv [=================================================] 36.06MB/s, eta:  0s                                                                                                   
+	Augmented Dickey-Fuller Test
+
+data:  ts_wind
+Dickey-Fuller = -1.4944, Lag order = 2, p-value = 0.765
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_electricity
+Dickey-Fuller = -1.758, Lag order = 2, p-value = 0.6646
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_gas
+Dickey-Fuller = -1.4697, Lag order = 2, p-value = 0.7744
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_lcoe
+Dickey-Fuller = -2.2711, Lag order = 2, p-value = 0.4691
+alternative hypothesis: stationary
+
+
+	KPSS Test for Level Stationarity
+
+data:  ts_wind
+KPSS Level = 0.94219, Truncation lag parameter = 2, p-value = 0.01
+
+
+	KPSS Test for Level Stationarity
+
+data:  ts_electricity
+KPSS Level = 0.63151, Truncation lag parameter = 2, p-value = 0.01977
+
+
+	KPSS Test for Level Stationarity
+
+data:  ts_gas
+KPSS Level = 0.46566, Truncation lag parameter = 2, p-value = 0.0494
+
+
+	KPSS Test for Level Stationarity
+
+data:  ts_lcoe
+KPSS Level = 0.93795, Truncation lag parameter = 2, p-value = 0.01
+
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_wind
+Dickey-Fuller = -1.7479, Lag order = 2, p-value = 0.6684
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_electricity
+Dickey-Fuller = -3.2665, Lag order = 2, p-value = 0.09632
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_gas
+Dickey-Fuller = -1.7355, Lag order = 2, p-value = 0.6731
+alternative hypothesis: stationary
+
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_lcoe
+Dickey-Fuller = -2.6925, Lag order = 2, p-value = 0.3086
+alternative hypothesis: stationary
+
+
+	KPSS Test for Level Stationarity
+
+data:  diff_wind
+KPSS Level = 0.80661, Truncation lag parameter = 2, p-value = 0.01
+
+
+	KPSS Test for Level Stationarity
+
+data:  diff_electricity
+KPSS Level = 0.594, Truncation lag parameter = 2, p-value = 0.02318
+
+
+	KPSS Test for Level Stationarity
+
+data:  diff_gas
+KPSS Level = 0.13742, Truncation lag parameter = 2, p-value = 0.1
+
+
+	KPSS Test for Level Stationarity
+
+data:  diff_lcoe
+KPSS Level = 0.44179, Truncation lag parameter = 2, p-value = 0.05914
+
+indexing master_dataset.csv [=================================================] 37.70MB/s, eta:  0s                                                                                                   wrote 1.35kB in  0s, 38.49MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 indexing model_df.csv [=======================================================] 94.06MB/s, eta:  0s                                                                                                   Series: ts_log_wind 
+ARIMA(0,2,0) 
+
+sigma^2 = 0.001301:  log likelihood = 45.68
+AIC=-89.37   AICc=-89.19   BIC=-88.19
+Series: ts_log_wind 
+Regression with ARIMA(1,0,0) errors 
+
+Coefficients:
+         ar1  log_lcoe  log_electricity  log_gas
+      0.9873   -1.1002           1.0245   0.0397
+s.e.  0.0177    0.3300           0.2048   0.0644
+
+sigma^2 = 0.02615:  log likelihood = 10.81
+AIC=-11.62   AICc=-8.62   BIC=-5.33
+Series: ts_log_wind 
+Regression with ARIMA(1,0,0) errors 
+
+Coefficients:
+         ar1  log_lcoe  log_electricity
+      0.9881   -1.1106           1.0430
+s.e.  0.0168    0.3323           0.2045
+
+sigma^2 = 0.02532:  log likelihood = 10.62
+AIC=-13.24   AICc=-11.33   BIC=-8.21
+
+Call:
+lm(formula = log_wind ~ log_lcoe + log_electricity + log_gas, 
+    data = model_df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.43861 -0.17291  0.02701  0.12103  0.50462 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     -84.499892  11.462128  -7.372 2.23e-07 ***
+log_lcoe         -1.361817   0.132116 -10.308 6.93e-10 ***
+log_electricity  11.463615   1.372781   8.351 2.88e-08 ***
+log_gas           0.009703   0.106807   0.091    0.928    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2573 on 22 degrees of freedom
+Multiple R-squared:  0.9571,	Adjusted R-squared:  0.9513 
+F-statistic: 163.8 on 3 and 22 DF,  p-value: 3.392e-15
+
+
+Call:
+lm(formula = log_wind ~ log_lcoe + log_electricity, data = model_df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.4351 -0.1738  0.0272  0.1161  0.5078 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     -85.0201     9.7126  -8.754 8.85e-09 ***
+log_lcoe         -1.3647     0.1255 -10.875 1.54e-10 ***
+log_electricity  11.5303     1.1347  10.162 5.64e-10 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2517 on 23 degrees of freedom
+Multiple R-squared:  0.9571,	Adjusted R-squared:  0.9534 
+F-statistic: 256.8 on 2 and 23 DF,  p-value: < 2.2e-16
+
+       log_lcoe log_electricity         log_gas 
+       1.568294        2.071157        1.944033 
+       log_lcoe log_electricity 
+       1.478755        1.478755 
+
+> # File: 01_data_construction.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Load raw datasets, reshape, merge, and create master datas .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(tidyr)
+
+> library(janitor)
+
+> library(here)
+
+> # Load raw data
+> wind_raw <- read_delim(
++   here("data", "raw", "Wind Capacity (MW).txt"),
++   delim = "\t"
++ )
+indexing Wind Capacity (MW).txt [=============================================] 14.99MB/s, eta:  0s                                                                                                   
+> electricity_raw <- read_delim(
++   here("data", "raw", "Energy Generated TWh.txt"),
++   delim = "\t"
++ )
+indexing Energy Generated TWh.txt [===========================================] 19.62MB/s, eta:  0s                                                                                                   
+> gas_raw <- read_delim(
++   here("data", "raw", "Natural Gas (Europe).txt"),
++   delim = "\t"
++ )
+indexing Natural gas (Europe).txt [===========================================] 35.10MB/s, eta:  0s                                                                                                   
+> lcoe_raw <- read_delim(
++   here("data", "raw", "Onshore LCOE.txt"),
++   delim = "\t",
++   skip = 1
++ )
+indexing Onshore LCOE.txt [===================================================] 24.45MB/s, eta:  0s                                                                                                   
+> # Transform datasets
+> wind <- wind_raw %>%
++   pivot_longer(
++     cols = -1,
++     names_to = "year",
++     values_to = "wind_mw"
++   ) %>%
++   mu .... [TRUNCATED] 
+
+> electricity <- electricity_raw %>%
++   pivot_longer(
++     cols = -1,
++     names_to = "year",
++     values_to = "electricity_twh"
++   ) %>%
++   mut .... [TRUNCATED] 
+
+> gas <- gas_raw %>%
++   rename(
++     year = 1,
++     gas_price_usd_per_mmbtu = 2
++   ) %>%
++   mutate(
++     year = as.numeric(year),
++     gas_pric .... [TRUNCATED] 
+
+> lcoe <- lcoe_raw %>%
++   rename(
++     year = 'Year',
++     lcoe_usd_per_kwh = 'Weighted average'
++   ) %>%
++   mutate(year = as.numeric(year)) %>%
+ .... [TRUNCATED] 
+
+> # Merge datasets
+> master_df <- wind %>%
++   left_join(electricity, by = "year") %>%
++   left_join(gas, by = "year") %>%
++   left_join(lcoe, by = "y ..." ... [TRUNCATED] 
+
+> # Final transformations
+> master_df <- master_df %>%
++   mutate(
++     wind_gw = wind_mw / 1000,
++     lcoe_usd_per_mwh = lcoe_usd_per_kwh * 1000
++  .... [TRUNCATED] 
+
+> # Save cleaned dataset
+> write_csv(
++   master_df,
++   here("data", "clean", "master_dataset.csv")
++ )
+wrote 439.00B in  0s, 13.74MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 
+> # File: 01_data_construction.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Load raw datasets, reshape, merge, and create master datas .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(tidyr)
+
+> library(janitor)
+
+> library(here)
+
+> # Load raw data
+> wind_raw <- read_delim(
++   here("data", "raw", "Wind Capacity (MW).txt"),
++   delim = "\t"
++ )
+indexing Wind Capacity (MW).txt [=============================================] 12.19MB/s, eta:  0s                                                                                                   
+> electricity_raw <- read_delim(
++   here("data", "raw", "Energy Generated TWh.txt"),
++   delim = "\t"
++ )
+indexing Energy Generated TWh.txt [===========================================] 24.31MB/s, eta:  0s                                                                                                   
+> gas_raw <- read_delim(
++   here("data", "raw", "Natural Gas (Europe).txt"),
++   delim = "\t"
++ )
+indexing Natural gas (Europe).txt [===========================================] 36.70MB/s, eta:  0s                                                                                                   
+> lcoe_raw <- read_delim(
++   here("data", "raw", "Onshore LCOE.txt"),
++   delim = "\t",
++   skip = 1
++ )
+indexing Onshore LCOE.txt [===================================================] 19.74MB/s, eta:  0s                                                                                                   
+> # Transform datasets
+> wind <- wind_raw %>%
++   pivot_longer(
++     cols = -1,
++     names_to = "year",
++     values_to = "wind_mw"
++   ) %>%
++   mu .... [TRUNCATED] 
+
+> electricity <- electricity_raw %>%
++   pivot_longer(
++     cols = -1,
++     names_to = "year",
++     values_to = "electricity_twh"
++   ) %>%
++   mut .... [TRUNCATED] 
+
+> gas <- gas_raw %>%
++   rename(
++     year = 1,
++     gas_price_usd_per_mmbtu = 2
++   ) %>%
++   mutate(
++     year = as.numeric(year),
++     gas_pric .... [TRUNCATED] 
+
+> lcoe <- lcoe_raw %>%
++   rename(
++     year = 'Year',
++     lcoe_usd_per_kwh = 'Weighted average'
++   ) %>%
++   mutate(year = as.numeric(year)) %>%
+ .... [TRUNCATED] 
+
+> # Merge datasets
+> master_df <- wind %>%
++   left_join(electricity, by = "year") %>%
++   left_join(gas, by = "year") %>%
++   left_join(lcoe, by = "y ..." ... [TRUNCATED] 
+
+> # Final transformations
+> master_df <- master_df %>%
++   mutate(
++     wind_gw = wind_mw / 1000,
++     lcoe_usd_per_mwh = lcoe_usd_per_kwh * 1000
++  .... [TRUNCATED] 
+
+> # Save cleaned dataset
+> write_csv(
++   master_df,
++   here("data", "clean", "master_dataset.csv")
++ )
+wrote 439.00B in  0s, 16.29MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 
+> # File: 02_exploratory_data_analysis.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Perform EDA, visualisation, correlation analysis,  .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(tidyr)
+
+> library(ggplot2)
+
+> library(GGally)
+
+> library(patchwork)
+
+> library(here)
+
+> # Load data
+> master_df <- read_csv(
++   here("data", "clean", "master_dataset.csv")
++ )
+indexing master_dataset.csv [==================================================] 4.04MB/s, eta:  0s                                                                                                   
+> # Basic summary
+> summary(master_df)
+      year         wind_gw       electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+ Min.   :1997   Min.   :  4.81   Min.   :3389    Min.   : 2.130          Min.   : 33.0   
+ 1st Qu.:2003   1st Qu.: 29.71   1st Qu.:3828    1st Qu.: 3.947          1st Qu.: 68.5   
+ Median :2010   Median : 81.41   Median :3971    Median : 6.575          Median :107.5   
+ Mean   :2010   Mean   : 98.01   Mean   :3891    Mean   : 8.205          Mean   :101.9   
+ 3rd Qu.:2016   3rd Qu.:157.95   3rd Qu.:4037    3rd Qu.: 9.715          3rd Qu.:122.5   
+ Max.   :2022   Max.   :251.63   Max.   :4087    Max.   :40.340          Max.   :172.0   
+
+> # Time Series Visualisation
+> p1 <- ggplot(master_df, aes(x = year, y = wind_gw)) +
++   geom_line(linewidth = 1) +
++   labs(title = "Europe Wind Cap ..." ... [TRUNCATED] 
+
+> p2 <- ggplot(master_df, aes(x = year, y = electricity_twh)) +
++   geom_line(linewidth = 1) +
++   labs(title = "Electricity Generation", x = "Year",  .... [TRUNCATED] 
+
+> p3 <- ggplot(master_df, aes(x = year, y = gas_price_usd_per_mmbtu)) +
++   geom_line(linewidth = 1) +
++   labs(title = "Gas Price", x = "Year", y = " ..." ... [TRUNCATED] 
+
+> p4 <- ggplot(master_df, aes(x = year, y = lcoe_usd_per_mwh)) +
++   geom_line(linewidth = 1) +
++   geom_point() +
++   labs(title = "Wind LCOE", x = " ..." ... [TRUNCATED] 
+
+> # Combine plots
+> (p1 | p2) / (p3 | p4)
+
+> # Correlation Analysis
+> eda_vars <- master_df %>%
++   select(
++     wind_gw,
++     electricity_twh,
++     gas_price_usd_per_mmbtu,
++     lcoe_usd_p .... [TRUNCATED] 
+
+> cor_matrix <- cor(eda_vars, use = "complete.obs")
+
+> print(cor_matrix)
+                           wind_gw electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+wind_gw                  1.0000000       0.5865130               0.5317639       -0.9699302
+electricity_twh          0.5865130       1.0000000               0.3484335       -0.7178178
+gas_price_usd_per_mmbtu  0.5317639       0.3484335               1.0000000       -0.4972742
+lcoe_usd_per_mwh        -0.9699302      -0.7178178              -0.4972742        1.0000000
+
+> ggpairs(eda_vars)
+
+> # Log Transformation
+> eda_log <- master_df %>%
++   mutate(
++     log_wind = log(wind_gw),
++     log_electricity = log(electricity_twh),
++     log_g .... [TRUNCATED] 
+
+> # Log-based Visualisation
+> p5 <- ggplot(eda_log, aes(x = year, y = log_wind)) +
++   geom_line(linewidth = 1) +
++   labs(title = "Log Wind Capacity" .... [TRUNCATED] 
+
+> p6 <- ggplot(eda_log, aes(x = log_lcoe, y = log_wind)) +
++   geom_point() +
++   geom_smooth(method = "lm", se = FALSE) +
++   labs(title = "Wind vs L ..." ... [TRUNCATED] 
+
+> p7 <- ggplot(eda_log, aes(x = log_electricity, y = log_wind)) +
++   geom_point() +
++   geom_smooth(method = "lm", se = FALSE) +
++   labs(title = "Wi ..." ... [TRUNCATED] 
+
+> p8 <- ggplot(eda_log, aes(x = log_gas, y = log_wind)) +
++   geom_point() +
++   geom_smooth(method = "lm", se = FALSE) +
++   labs(title = "Wind vs Ga ..." ... [TRUNCATED] 
+
+> # Combine plots
+> (p5) / (p6 | p7 | p8)
+
+> # Distribution Analysis
+> p9 <- eda_log %>%
++   select(log_wind, log_lcoe, log_electricity, log_gas) %>%
++   pivot_longer(cols = everything()) %>%
++ .... [TRUNCATED] 
+
+> p9
+
+> # Data Quality Check
+> anyDuplicated(master_df)
+[1] 0
+
+> # Save time series overview
+> ggsave(
++   here("outputs", "eda", "time_series_overview.png"),
++   plot = (p1 | p2) / (p3 | p4),
++   width = 10, heig .... [TRUNCATED] 
+
+> # Save log relationships
+> ggsave(
++   here("outputs", "eda", "log_relationships.png"),
++   plot = (p5) / (p6 | p7 | p8),
++   width = 10, height = 6 .... [TRUNCATED] 
+
+> # File: 03_stationarity_tests.R
+> # Project: Wind Energy Adoption Forecasting
+> # Purpose: Create time series objects, test stationarity, and prepar .... [TRUNCATED] 
+
+> library(dplyr)
+
+> library(tseries)
+
+> library(forecast)
+
+> library(patchwork)
+
+> library(here)
+
+> # Load data
+> master_df <- read_csv(
++   here("data", "clean", "master_dataset.csv")
++ )
+indexing master_dataset.csv [=================================================] 30.44MB/s, eta:  0s                                                                                                   
+> # Create time series objects
+> start_year <- min(master_df$year)
+
+> ts_wind <- ts(master_df$wind_gw, start = start_year, frequency = 1)
+
+> ts_electricity <- ts(master_df$electricity_twh, start = start_year, frequency = 1)
+
+> ts_gas <- ts(master_df$gas_price_usd_per_mmbtu, start = start_year, frequency = 1)
+
+> ts_lcoe <- ts(master_df$lcoe_usd_per_mwh, start = start_year, frequency = 1)
+
+> # Stationarity tests (level)
+> adf.test(ts_wind)
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_wind
+Dickey-Fuller = -1.4944, Lag order = 2, p-value = 0.765
+alternative hypothesis: stationary
+
+
+> adf.test(ts_electricity)
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_electricity
+Dickey-Fuller = -1.758, Lag order = 2, p-value = 0.6646
+alternative hypothesis: stationary
+
+
+> adf.test(ts_gas)
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_gas
+Dickey-Fuller = -1.4697, Lag order = 2, p-value = 0.7744
+alternative hypothesis: stationary
+
+
+> adf.test(ts_lcoe)
+
+	Augmented Dickey-Fuller Test
+
+data:  ts_lcoe
+Dickey-Fuller = -2.2711, Lag order = 2, p-value = 0.4691
+alternative hypothesis: stationary
+
+
+> kpss.test(ts_wind)
+
+	KPSS Test for Level Stationarity
+
+data:  ts_wind
+KPSS Level = 0.94219, Truncation lag parameter = 2, p-value = 0.01
+
+
+> kpss.test(ts_electricity)
+
+	KPSS Test for Level Stationarity
+
+data:  ts_electricity
+KPSS Level = 0.63151, Truncation lag parameter = 2, p-value = 0.01977
+
+
+> kpss.test(ts_gas)
+
+	KPSS Test for Level Stationarity
+
+data:  ts_gas
+KPSS Level = 0.46566, Truncation lag parameter = 2, p-value = 0.0494
+
+
+> kpss.test(ts_lcoe)
+
+	KPSS Test for Level Stationarity
+
+data:  ts_lcoe
+KPSS Level = 0.93795, Truncation lag parameter = 2, p-value = 0.01
+
+
+> # Log transformation
+> log_wind <- log(ts_wind)
+
+> log_electricity <- log(ts_electricity)
+
+> log_gas <- log(ts_gas)
+
+> log_lcoe <- log(ts_lcoe)
+
+> # Differencing
+> diff_wind <- diff(log_wind)
+
+> diff_electricity <- diff(log_electricity)
+
+> diff_gas <- diff(log_gas)
+
+> diff_lcoe <- diff(log_lcoe)
+
+> # Stationarity tests (transformed)
+> adf.test(diff_wind)
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_wind
+Dickey-Fuller = -1.7479, Lag order = 2, p-value = 0.6684
+alternative hypothesis: stationary
+
+
+> adf.test(diff_electricity)
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_electricity
+Dickey-Fuller = -3.2665, Lag order = 2, p-value = 0.09632
+alternative hypothesis: stationary
+
+
+> adf.test(diff_gas)
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_gas
+Dickey-Fuller = -1.7355, Lag order = 2, p-value = 0.6731
+alternative hypothesis: stationary
+
+
+> adf.test(diff_lcoe)
+
+	Augmented Dickey-Fuller Test
+
+data:  diff_lcoe
+Dickey-Fuller = -2.6925, Lag order = 2, p-value = 0.3086
+alternative hypothesis: stationary
+
+
+> kpss.test(diff_wind)
+
+	KPSS Test for Level Stationarity
+
+data:  diff_wind
+KPSS Level = 0.80661, Truncation lag parameter = 2, p-value = 0.01
+
+
+> kpss.test(diff_electricity)
+
+	KPSS Test for Level Stationarity
+
+data:  diff_electricity
+KPSS Level = 0.594, Truncation lag parameter = 2, p-value = 0.02318
+
+
+> kpss.test(diff_gas)
+
+	KPSS Test for Level Stationarity
+
+data:  diff_gas
+KPSS Level = 0.13742, Truncation lag parameter = 2, p-value = 0.1
+
+
+> kpss.test(diff_lcoe)
+
+	KPSS Test for Level Stationarity
+
+data:  diff_lcoe
+KPSS Level = 0.44179, Truncation lag parameter = 2, p-value = 0.05914
+
+
+> # ACF plots
+> acf_wind <- ggAcf(diff_wind) + ggtitle("ACF: Diff Log Wind")
+
+> acf_electricity <- ggAcf(diff_electricity) + ggtitle("ACF: Diff Log Electricity")
+
+> acf_gas <- ggAcf(diff_gas) + ggtitle("ACF: Diff Log Gas")
+
+> acf_lcoe <- ggAcf(diff_lcoe) + ggtitle("ACF: Diff Log LCOE")
+
+> (acf_wind | acf_electricity) / (acf_gas | acf_lcoe)
+
+> # PACF plots
+> pacf_wind <- ggPacf(diff_wind) + ggtitle("PACF: Diff Log Wind")
+
+> pacf_electricity <- ggPacf(diff_electricity) + ggtitle("PACF: Diff Log Electricity")
+
+> pacf_gas <- ggPacf(diff_gas) + ggtitle("PACF: Diff Log Gas")
+
+> pacf_lcoe <- ggPacf(diff_lcoe) + ggtitle("PACF: Diff Log LCOE")
+
+> (pacf_wind | pacf_electricity) / (pacf_gas | pacf_lcoe)
+indexing Wind Capacity (MW).txt [=============================================] 20.26MB/s, eta:  0s                                                                                                   indexing Energy Generated TWh.txt [===========================================] 36.26MB/s, eta:  0s                                                                                                   indexing Natural gas (Europe).txt [===========================================] 54.74MB/s, eta:  0s                                                                                                   indexing Onshore LCOE.txt [===================================================] 36.47MB/s, eta:  0s                                                                                                   wrote 439.00B in  0s, 11.80MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 indexing master_dataset.csv [=================================================] 25.52MB/s, eta:  0s                                                                                                         year         wind_gw       electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+ Min.   :1997   Min.   :  4.81   Min.   :3389    Min.   : 2.130          Min.   : 33.0   
+ 1st Qu.:2003   1st Qu.: 29.71   1st Qu.:3828    1st Qu.: 3.947          1st Qu.: 68.5   
+ Median :2010   Median : 81.41   Median :3971    Median : 6.575          Median :107.5   
+ Mean   :2010   Mean   : 98.01   Mean   :3891    Mean   : 8.205          Mean   :101.9   
+ 3rd Qu.:2016   3rd Qu.:157.95   3rd Qu.:4037    3rd Qu.: 9.715          3rd Qu.:122.5   
+ Max.   :2022   Max.   :251.63   Max.   :4087    Max.   :40.340          Max.   :172.0   
+          used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells 3590945 191.8    7270917 388.4  7270917 388.4
+Vcells 6960640  53.2   15009718 114.6 12441412  95.0
+indexing Wind Capacity (MW).txt [=============================================] 15.64MB/s, eta:  0s                                                                                                   indexing Energy Generated TWh.txt [===========================================] 16.98MB/s, eta:  0s                                                                                                   indexing Natural gas (Europe).txt [===========================================] 28.58MB/s, eta:  0s                                                                                                   indexing Onshore LCOE.txt [===================================================] 24.45MB/s, eta:  0s                                                                                                   wrote 439.00B in  0s, 12.53MB/s                                                                                                 wrote 2.15GB in  0s, 2.15GB/s                                                                                                 indexing master_dataset.csv [=================================================] 23.20MB/s, eta:  0s                                                                                                         year         wind_gw       electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+ Min.   :1997   Min.   :  4.81   Min.   :3389    Min.   : 2.130          Min.   : 33.0   
+ 1st Qu.:2003   1st Qu.: 29.71   1st Qu.:3828    1st Qu.: 3.947          1st Qu.: 68.5   
+ Median :2010   Median : 81.41   Median :3971    Median : 6.575          Median :107.5   
+ Mean   :2010   Mean   : 98.01   Mean   :3891    Mean   : 8.205          Mean   :101.9   
+ 3rd Qu.:2016   3rd Qu.:157.95   3rd Qu.:4037    3rd Qu.: 9.715          3rd Qu.:122.5   
+ Max.   :2022   Max.   :251.63   Max.   :4087    Max.   :40.340          Max.   :172.0   
+      year         wind_gw       electricity_twh gas_price_usd_per_mmbtu lcoe_usd_per_mwh
+ Min.   :1997   Min.   :  4.81   Min.   :3389    Min.   : 2.130          Min.   : 33.0   
+ 1st Qu.:2003   1st Qu.: 29.71   1st Qu.:3828    1st Qu.: 3.947          1st Qu.: 68.5   
+ Median :2010   Median : 81.41   Median :3971    Median : 6.575          Median :107.5   
+ Mean   :2010   Mean   : 98.01   Mean   :3891    Mean   : 8.205          Mean   :101.9   
+ 3rd Qu.:2016   3rd Qu.:157.95   3rd Qu.:4037    3rd Qu.: 9.715          3rd Qu.:122.5   
+ Max.   :2022   Max.   :251.63   Max.   :4087    Max.   :40.340          Max.   :172.0   
