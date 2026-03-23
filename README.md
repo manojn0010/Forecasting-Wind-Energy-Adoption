@@ -63,14 +63,14 @@ The following model classes are evaluated:
   - ARIMA achieves the lowest forecasting error  
   - ARIMAX models perform significantly worse out-of-sample  
 
-→ Final model selected: **ARIMA(0,2,0)**  
+> Final model selected: **ARIMA(0,2,0)**  
 
 ---
 ## Forecast Output
 The final model generates forecasts for wind capacity over an **8-year horizon**, following a proportional extension relative to available data.
 
-- Forecast period: **2023–2030**  
-- Forecasts are generated in log scale and transformed back to original units  
+> Forecast period: **2023–2030**  
+> Forecasts are generated in log scale and transformed back to original units  
 
 The results indicate continued growth in wind energy adoption, with widening uncertainty bands over time.
 
