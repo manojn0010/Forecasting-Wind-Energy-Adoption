@@ -3,13 +3,15 @@ Analysing and forecasting wind energy growth trends using statistical and time s
 
 ---
 ## Description
-This project analyses and forecasts wind energy adoption in Europe using a structured time series modelling framework. Installed wind capacity is used as a proxy for adoption, capturing long-term growth dynamics in renewable energy expansion.
+This project analyses and forecasts wind energy adoption in Europe using a structured time series modelling framework. Installed wind capacity is used as a proxy for wind energy adoption, representing cumulative deployment over time.
 
 The analysis begins with an exploratory assessment of key economic drivers, including electricity generation (demand proxy), natural gas prices (competitive energy pricing), and wind levelised cost of energy (LCOE). These variables are evaluated to understand their relationship with wind capacity growth.
 
 Pre-modelling diagnostics reveal strong upward trends and autocorrelation in the data, motivating log transformation and time series modelling. Multiple model classes are then constructed, including regression, ARIMA, and ARIMAX specifications.
 
 Model validation using a train-test framework demonstrates that pure time series modelling (ARIMA) outperforms models incorporating external drivers. The final forecast is therefore generated using an ARIMA model fitted on log-transformed wind capacity.
+
+> This highlights that strong explanatory relationships do not necessarily translate into improved forecasting performance.
 
 #### Tools Used
 **Time Series Modelling and Forecasting:** `forecast`, `tseries`  
