@@ -75,7 +75,7 @@ Key findings:
 - Electricity generation has a strong positive and significant effect  
 - Gas prices are statistically insignificant  
 
-> However, residual autocorrelation violates time series assumptions, making regression unsuitable for forecasting.***
+> However, residual autocorrelation violates time series assumptions, making regression unsuitable for forecasting.
 
 **ARIMAX Models**  
 
