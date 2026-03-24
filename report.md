@@ -1,7 +1,7 @@
 # Forecasting Wind Energy Adoption in Europe — Analysis Report
 
 ## Abstract
-This project presents a structured time series analysis and forecasting study of wind energy adoption in Europe. Installed wind capacity is used as a proxy for adoption, capturing long-term growth in renewable energy deployment.
+This project presents a structured time series analysis and forecasting study of wind energy adoption in Europe. Installed wind capacity is used as a proxy for wind energy adoption, representing cumulative deployment over time.
 
 The analysis integrates exploratory data assessment with statistical modelling to evaluate both temporal dynamics and the role of economic drivers. While variables such as electricity demand, gas prices, and wind cost exhibit meaningful relationships with wind capacity, model validation shows that a pure time series approach provides superior forecasting performance. The final model is selected based on out-of-sample accuracy and used to generate multi-period forecasts.
 
@@ -100,11 +100,11 @@ Models are evaluated using an 80–20 train-test split.
 
 #### Forecast Accuracy (Test Set)
 
-| Model | RMSE |
-|------|------|
-| ARIMA | 0.0634 |
-| ARIMAX (Reduced) | 0.2026 |
-| ARIMAX (Full) | 1.5205 |
+| Model | RMSE | MAE |
+|------|------|------|
+| ARIMA | 0.0634 | 0.0532 |
+| ARIMAX (Reduced) | 0.2026 | 0.1688 |
+| ARIMAX (Full) | 1.5205 | 1.2613 |
 
 #### Key Result
 
@@ -154,6 +154,7 @@ The final model (ARIMA) is used to generate forecasts for wind capacity over an 
 - Residual autocorrelation remains in ARIMA model  
 - Exogenous variables excluded from final forecast  
 - Forecast uncertainty increases over longer horizons  
+- The natural gas price series is compiled from publicly available datasets without a single standardised source and is used as an approximate proxy for European gas price trends  
 
 ---
 ### Conclusion
