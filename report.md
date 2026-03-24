@@ -172,4 +172,4 @@ This project demonstrates a structured forecasting workflow combining explorator
 - Natural gas price (Dutch TTF) data:  
   Compiled from publicly available European gas price datasets used as a proxy for energy market competition  
 
-- Project Repository: <your-github-repo-link>
+- Project Repository: <https://github.com/manojn0010/Forecasting-Wind-Energy-Adoption/tree/main>
