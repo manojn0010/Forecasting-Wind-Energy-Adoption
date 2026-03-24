@@ -197,14 +197,9 @@ Ljung-Box test:
 
 **Regression Models**  
 
-Breusch-Pagan:
-- p = 0.220 → no heteroskedasticity  
-
-Shapiro-Wilk:
-- p ≈ 0.92 → residuals approximately normal  
-
-Durbin-Watson:
-- p < 0.01 → strong autocorrelation  
+- Breusch-Pagan: p = 0.220 → no heteroskedasticity  
+- Shapiro-Wilk: p ≈ 0.92 → residuals approximately normal  
+- Durbin-Watson: p < 0.01 → strong autocorrelation  
 
 *Conclusion:* Regression models violate independence assumption  
 
