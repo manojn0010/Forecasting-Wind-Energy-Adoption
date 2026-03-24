@@ -75,9 +75,8 @@ Key findings:
 - Electricity generation has a strong positive and significant effect  
 - Gas prices are statistically insignificant  
 
-***However, residual autocorrelation violates time series assumptions, making regression unsuitable for forecasting.***
+> However, residual autocorrelation violates time series assumptions, making regression unsuitable for forecasting.***
 
----
 **ARIMAX Models**  
 
 ARIMAX models incorporate external drivers within a time series framework.
@@ -87,7 +86,6 @@ ARIMAX models incorporate external drivers within a time series framework.
 
 > Despite capturing both temporal and economic effects, these models perform poorly in out-of-sample forecasting.
 
----
 **ARIMA Model**  
 
 A univariate ARIMA model is fitted on log-transformed wind capacity.
