@@ -93,5 +93,8 @@ The final model is used to generate forecasts for wind capacity over an **8-year
 - Analytical findings and interpretation are presented in `report.md`  
 
 ---
-## Sources and References
-*To be added*
+### References
+**Data obtained from:** Energy Institute Statistical Review of World Energy  
+**Wind LCOE data obtained from:** IRENA (2023), Renewable Power Generation Costs in 2022  
+**Natural gas price data obtained from:** Publicly available European gas price datasets (Dutch TTF benchmark)  
+**Main workflow/Modelling performed using:** R Language
