@@ -52,11 +52,6 @@ Multiple model classes are evaluated:
   - Reduced model (excluding gas price)  
 - **Regression models (log-log specification)**  
 
-Key observations:
-- Gas price found to be statistically insignificant  
-- Regression models show strong fit but violate time series assumptions  
-- ARIMAX models fail to improve predictive performance  
-
 #### 4. Model Validation
 - 80–20 train-test split (constrained by small sample size)  
 - Evaluation performed on log-transformed data  
