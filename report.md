@@ -163,7 +163,7 @@ This project demonstrates a structured forecasting workflow combining explorator
 
 ---
 ### References and Sources
-- Dataset (Source): Energy Institute Statistical Review of World Energy  
+- Data of **Installed Wind Capacity** and **Energy Generated** obtained from: Energy Institute Statistical Review of World Energy  
   <https://www.energyinst.org/statistical-review/home>
 
 - Wind LCOE data obtained from:  
