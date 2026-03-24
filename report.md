@@ -139,7 +139,7 @@ The final model (ARIMA) is used to generate forecasts for wind capacity over an 
 > Uncertainty intervals widen over time due to cumulative forecasting error.
 
 ---
-## Key Insights
+### Key Insights
 
 - **Time series dynamics dominate forecasting performance**  
 - **Economic drivers are explanatory but do not improve prediction accuracy**  
@@ -147,7 +147,8 @@ The final model (ARIMA) is used to generate forecasts for wind capacity over an 
 - **Wind adoption exhibits strong persistence and trend-driven growth**  
 
 ---
-## Limitations
+### Limitations
+
 - Small sample size (26 observations)  
 - Annual frequency limits short-term dynamics  
 - Residual autocorrelation remains in ARIMA model  
@@ -155,9 +156,19 @@ The final model (ARIMA) is used to generate forecasts for wind capacity over an 
 - Forecast uncertainty increases over longer horizons  
 
 ---
-## Conclusion
+### Conclusion
 
 This project demonstrates a structured forecasting workflow combining exploratory analysis, statistical modelling, and validation. While economic drivers provide useful explanatory context, the results show that time series modelling alone offers the most reliable forecasts for wind energy adoption in this dataset.
 
 ---
-## References and Sources
+### References and Sources
+- Dataset (Source): Energy Institute Statistical Review of World Energy  
+  <https://www.energyinst.org/statistical-review/home>
+
+- Wind LCOE data obtained from:  
+  IRENA (2023), *Renewable Power Generation Costs in 2022*, International Renewable Energy Agency, Abu Dhabi  
+
+- Natural gas price (Dutch TTF) data:  
+  Compiled from publicly available European gas price datasets used as a proxy for energy market competition  
+
+- Project Repository: <your-github-repo-link>
