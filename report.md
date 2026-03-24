@@ -132,8 +132,11 @@ The final model (ARIMA) is used to generate forecasts for wind capacity over an 
 | 2030 | 481.52 |
 
 **Forecast Plot**
-![](outputs/forecast/forecast_plot.png)  
-The forecasts indicate continued growth in wind energy adoption, with widening uncertainty intervals over time.
+
+![](outputs/forecast/forecast_plot.png)
+
+> The forecasts indicate continued growth in wind energy adoption across Europe
+> Uncertainty intervals widen over time due to cumulative forecasting error
 
 ---
 ## Key Insights
