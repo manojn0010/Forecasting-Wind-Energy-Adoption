@@ -251,7 +251,3 @@ Outputs:
 - Small sample size (26 observations) limits robustness  
 - No seasonal component (annual data)  
 - Residual autocorrelation persists in ARIMA model   
-
----
-### References  
-*To be added*
