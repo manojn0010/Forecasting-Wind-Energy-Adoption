@@ -148,6 +148,9 @@ Output: `data/processed/model_df.csv`
 - Selected using `auto.arima()`  
 - Final specification: **ARIMA(0,2,0)**  
 
+*Interpretation:*  
+The specification implies a second-differenced process with no autoregressive or moving average terms, indicating that wind capacity growth is primarily trend-driven rather than dependent on short-term fluctuations.
+
 Model output:
 - sigma² = 0.001301  
 - log likelihood = 45.68  
@@ -210,6 +213,8 @@ Ljung-Box test:
 #### Validation Design  
 - 80–20 train-test split  
 - Validation performed on log scale  
+
+> Forecast accuracy is evaluated on the log-transformed scale to maintain consistency with model estimation.
 
 #### Forecast Accuracy (Test Set)  
 - ARIMA RMSE = 0.0634  
