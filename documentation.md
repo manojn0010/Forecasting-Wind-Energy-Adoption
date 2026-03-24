@@ -1,15 +1,15 @@
 # Project Documentation  
 **Project:** Forecasting Wind Energy Adoption  
-**Scope:** This document is intended for technical reviewers and focuses on data processing, modelling logic, and time series methodology rather than interpretative findings.
+**Scope:** This document is intended for technical reviewers and focuses on modelling logic, data transformations, and statistical validation. Interpretative findings and results are presented in `report.md`.
 
 ---
 ## Overview  
-This document provides technical documentation for the wind energy forecasting pipeline. The project models and forecasts installed wind capacity in Europe using time series techniques, with exploratory evaluation of economic drivers.
+This document provides technical documentation for the wind energy forecasting pipeline. The project models installed wind capacity in Europe using time series techniques, with exploratory evaluation of economic drivers.
 
 The workflow is divided into:
 
 1. Data ingestion and construction  
-2. Exploratory data analysis  
+2. Exploratory analysis  
 3. Stationarity testing and transformation  
 4. Feature engineering  
 5. Model construction  
@@ -17,15 +17,14 @@ The workflow is divided into:
 7. Model validation (train-test)  
 8. Final forecasting  
 
-The objective is to identify an appropriate forecasting model through structured comparison across regression, ARIMA, and ARIMAX specifications.
+The objective is to identify a suitable forecasting model through structured comparison of regression, ARIMA, and ARIMAX approaches.
 
 ---
 ### Data Construction Logic  
-
 > Implemented in `01_data_construction.R`
-
 #### Raw Data Sources  
-The dataset is constructed from multiple raw files containing:
+
+The dataset is compiled from multiple raw files containing:
 
 - Wind installed capacity (MW)  
 - Electricity generation (TWh)  
@@ -36,10 +35,12 @@ The dataset is constructed from multiple raw files containing:
 
 - Wide-to-long reshaping using `pivot_longer()`  
 - Standardisation of variable names  
-- Conversion of all variables to numeric format  
-- Unit transformations:
-  - Wind: MW → GW  
-  - LCOE: $/kWh → $/MWh  
+- Explicit type coercion to numeric formats  
+
+#### Unit Transformations  
+
+- Wind: MW → GW  
+- LCOE: $/kWh → $/MWh  
 
 #### Data Integration  
 
@@ -47,74 +48,81 @@ Datasets are merged on `year` using sequential `left_join()` operations.
 
 #### Data Quality  
 
-- Missing values introduced during type coercion (gas prices)  
+- Missing values introduced during gas price coercion  
 - No duplicate observations detected  
-- Final dataset spans **1997–2022 (26 observations)**  
+- Final dataset spans 26 annual observations (1997–2022)  
 
-Output saved to:  
-`data/clean/master_dataset.csv`
+Output: `data/clean/master_dataset.csv`
 
 ---
-### Exploratory Data Analysis  
-
+### Exploratory Analysis  
 > Implemented in `02_eda.R`
 
-#### Time Series Behaviour  
+EDA is used to assess modelling suitability and inform transformation choices.
 
-- Wind capacity exhibits strong upward (non-linear) growth  
-- Electricity generation shows moderate upward trend  
-- LCOE shows declining trend over time  
-- Gas prices display volatility  
+#### Technical Observations  
 
-#### Correlation Structure  
+- Wind capacity exhibits strong non-linear upward growth  
+- Variance instability present in level data  
+- Correlation structure suggests:
+  - Strong inverse relationship with LCOE  
+  - Moderate positive relationship with electricity  
+  - Weak relationship with gas price  
 
-| Variable Pair | Correlation |
-|--------------|------------|
-| Wind – LCOE | Strong negative |
-| Wind – Electricity | Moderate positive |
-| Wind – Gas | Moderate positive |
+#### Design Decisions  
 
-#### Log Transformation  
-
-Log transformation is applied to:
-- Stabilise variance  
-- Linearise exponential growth  
-
-Log-based scatter plots indicate:
-- Strong linear relationship between log(wind) and log(LCOE)  
-- Positive association with electricity  
-- Weak relationship with gas  
+- Log transformation applied to all variables to:
+  - Stabilise variance  
+  - Linearise multiplicative relationships  
 
 ---
 ### Stationarity Testing  
-
 > Implemented in `03_stationarity_tests.R`
 
 #### Level Series  
 
-- ADF tests fail to reject non-stationarity  
-- KPSS tests reject stationarity  
+ADF test results:
+- Wind: p = 0.765  
+- Electricity: p = 0.665  
+- Gas: p = 0.774  
+- LCOE: p = 0.469  
 
-> All series treated as **non-stationary in levels**
+KPSS test results:
+- Wind: p = 0.01  
+- Electricity: p ≈ 0.02  
+- Gas: p ≈ 0.049  
+- LCOE: p = 0.01  
 
-#### Transformations  
-
-- Log transformation applied  
-- First differencing applied to log series  
+**Interpretation:**  
+- ADF fails to reject non-stationarity  
+- KPSS rejects stationarity  
+> All variables treated as non-stationary in levels  
 
 #### Transformed Series  
 
-- Mixed results in ADF tests  
-- KPSS indicates improved stationarity (especially for gas and LCOE)
+Transformation pipeline:
+1. Log transformation  
+2. First differencing  
 
-#### ACF and PACF  
+ADF (differenced):
+- Wind: p = 0.668  
+- Electricity: p = 0.096  
+- Gas: p = 0.673  
+- LCOE: p = 0.309  
 
-- Significant autocorrelation observed in wind series  
-- Suggests need for differencing and ARIMA-type modelling  
+KPSS (differenced):
+- Wind: p = 0.01  
+- Electricity: p ≈ 0.023  
+- Gas: p = 0.10  
+- LCOE: p ≈ 0.059  
+
+**Interpretation:**  
+- Partial improvement in stationarity  
+- Wind series remains persistent  
+> Supports use of integrated time series models  
 
 ---
 ### Feature Engineering  
-
 > Implemented in `04_feature_engineering.R`
 
 #### Constructed Variables  
@@ -124,156 +132,131 @@ Log-based scatter plots indicate:
 - `log_gas`  
 - `log_lcoe`  
 
-#### Dataset Preparation  
+#### Design Rationale  
 
-- Retains only modelling-relevant columns  
-- Ensures consistency across modelling scripts  
+- Maintain consistency across modelling approaches  
+- Enable log-log relationships in regression  
+- Align transformations with stationarity requirements  
 
-Output saved to:  
-`data/processed/model_df.csv`
+Output: `data/processed/model_df.csv`
 
 ---
 ### Model Construction  
-
 > Implemented in `05_model_fitting.R`
 
-#### Time Series Setup  
-
-- Target variable: `log_wind`  
-- Annual frequency (`frequency = 1`)  
-
-#### Model Classes Evaluated  
-
-**1. ARIMA** 
-
-- Automatically selected using `auto.arima()`  
+**ARIMA Model**  
+- Selected using `auto.arima()`  
 - Final specification: **ARIMA(0,2,0)**  
 
-**2. ARIMAX**  
+Model output:
+- sigma² = 0.001301  
+- log likelihood = 45.68  
+- AIC = -89.37  
 
-Two specifications:
+**ARIMAX Models**  
 
-- *Full model:*  
-  - log_lcoe  
-  - log_electricity  
-  - log_gas  
+- Full model:
+  - AR(1) coefficient = 0.9873  
+  - log_lcoe = -1.1002  
+  - log_electricity = 1.0245  
+  - log_gas = 0.0397  
 
-- *Reduced model:*  
-  - log_lcoe  
-  - log_electricity  
+AIC = -11.62  
 
-**3. Regression Models** 
+- Reduced model:
+  - AR(1) = 0.9881  
+  - log_lcoe = -1.1106  
+  - log_electricity = 1.0430  
 
-- Log-log functional form  
-  - *Full model:* log_wind ~ log_lcoe + log_electricity + log_gas  
-  - *Reduced:* log_wind ~ log_lcoe + log_electricity  
+AIC = -13.24  
 
-#### Model Insights  
+**Regression Models**  
 
-- Gas price is statistically insignificant (p ≈ 0.93)  
-- Reduced regression model retains explanatory power  
-- Multicollinearity not severe (VIF < 2)
+- Full model:
+  - log_lcoe significant (p < 0.001)  
+  - log_electricity significant (p < 0.001)  
+  - log_gas insignificant (p = 0.928)  
+  - Adjusted R² = 0.9513  
+
+- Reduced model:
+  - Adjusted R² = 0.9534  
+
+*Multicollinearity:* (VIF < 2.1) across all variables  
 
 ---
 ### Diagnostic Validation  
-
 > Implemented in `06_model_diagnostics.R`
 
-#### Time Series Models  
+**Time Series Models**  
 
-- ARIMA residuals:
-  - Ljung-Box p-value < 0.01  
-> residual autocorrelation present  
+Ljung-Box test:
 
-- ARIMAX (full):
-  - borderline residual independence  
+- ARIMA: p = 0.0098 → residual autocorrelation present  
+- ARIMAX (full): p = 0.051 → borderline  
+- ARIMAX (reduced): p = 0.040 → autocorrelation present  
 
-- ARIMAX (reduced):
-  - residual autocorrelation persists  
+**Regression Models**  
 
-#### Regression Models  
+Breusch-Pagan:
+- p = 0.220 → no heteroskedasticity  
 
-Tests performed:
-- Breusch-Pagan (heteroskedasticity)  
-- Durbin-Watson (autocorrelation)  
-- Shapiro-Wilk (normality)  
+Shapiro-Wilk:
+- p ≈ 0.92 → residuals approximately normal  
 
-Findings:
-- No strong heteroskedasticity  
-- Residuals approximately normal  
-- Strong autocorrelation detected  
+Durbin-Watson:
+- p < 0.01 → strong autocorrelation  
 
-> Regression models unsuitable for time series forecasting  
+*Conclusion:* Regression models violate independence assumption  
 
 ---
 ### Model Validation  
-
 > Implemented in `07_model_validation.R`
 
-#### Train-Test Split  
-
-- 80–20 split (due to limited sample size)  
+#### Validation Design  
+- 80–20 train-test split  
 - Validation performed on log scale  
 
-#### Forecast Accuracy (Test Set)
+#### Forecast Accuracy (Test Set)  
+- ARIMA RMSE = 0.0634  
+- ARIMAX (reduced) RMSE = 0.2026  
+- ARIMAX (full) RMSE = 1.5205  
 
-| Model | RMSE |
-|------|------|
-| ARIMA | 0.0634 |
-| ARIMAX (Reduced) | 0.2026 |
-| ARIMAX (Full) | 1.5205 |
+**Interpretation**  
+- ARIMA achieves lowest forecast error  
+- ARIMAX models degrade performance when including exogenous variables  
 
-#### Key Result  
-
-- ARIMA significantly outperforms ARIMAX models  
-- Inclusion of exogenous variables degrades forecasting accuracy  
+> Time series structure dominates predictive accuracy  
 
 ---
 ### Final Forecast  
-
 > Implemented in `08_final_forecast.R`
 
-#### Model Used  
-**ARIMA(0,2,0)** fitted on full dataset  
+#### Model  
+- Final model: **ARIMA(0,2,0)**  
+- Fitted on full dataset  
 
-#### Forecast Setup  
-
-- Horizon: **8 years**  
+#### Forecast Design  
+- Horizon: 8 years  
 - Forecast generated in log scale  
 - Back-transformed using exponential function  
 
-#### Forecast Output  
+***Implementation Steps***  
+1. Generate forecasts using `forecast()`  
+2. Extract mean and confidence intervals  
+3. Convert to original scale using `exp()`  
 
-Forecast Values:
-
-| Year | Forecast (GW) |
-|------|--------------|
-| 2023 | 272.89 |
-| 2024 | 295.95 |
-| 2025 | 320.96 |
-| 2026 | 348.09 |
-| 2027 | 377.50 |
-| 2028 | 409.40 |
-| 2029 | 443.99 |
-| 2030 | 481.52 |
-
-Forecast Plot:
-
-![](outputs/forecast/forecast_plot.png)  
-- Uncertainty intervals widen over time due to cumulative forecasting error.
+Outputs:
+- `forecast_values.csv`  
+- `forecast_plot.png`  
 
 ---
-## Assumptions and Limitations  
-
-- Time series assumed to follow ARIMA structure  
-- Forecasting performed on log-transformed data  
-- Exogenous variables treated as optional (not included in final model)  
-- Small sample size (26 observations) limits model complexity  
+### Assumptions and Limitations  
+- ARIMA assumes linear dependence in differenced series  
+- Log transformation assumes multiplicative growth  
+- Small sample size (26 observations) limits robustness  
 - No seasonal component (annual data)  
-- Residual autocorrelation present in ARIMA model  
-- Forecast uncertainty increases over horizon  
+- Residual autocorrelation persists in ARIMA model   
 
 ---
-## References  
-
+### References  
 *To be added*
